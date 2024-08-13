@@ -1,16 +1,20 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Aug 13 12:14:37 2024
+
+@author: akash
+"""
+
+#Defining the libraries
 import json
 import os
 import sys
 import argparse
 from datetime import datetime
-
 import pdb
 
 def list_top_level(directory):
-    # Define the path to the JSON file
-    #json_file_path = os.path.join(directory, 'file_structure.json')
     json_file_path = directory
-    
     # Read and parse the JSON file
     try:
         with open(json_file_path, 'r') as f:
@@ -35,6 +39,7 @@ def format_modification_time(timestamp):
     dt = datetime.fromtimestamp(timestamp)
     return dt.strftime('%b %d %H:%M')
 
+
 def filter_items(items, filter_option):
     """
     Filter items based on the given filter option.
@@ -51,7 +56,25 @@ def filter_items(items, filter_option):
             filtered_items.append(item)
     return filtered_items
 
-def list_detailed_files_and_directories(items,lf_revrse=False,lf_t=False,filter_option=False,lsize=False):
+
+def human_readable_size(size):
+    """
+    Convert file size to a human-readable format.
+
+    :param size: Size in bytes.
+    :return: Human-readable size string.
+    """
+    if size >= 1024**3:
+        return f"{size / 1024**3:.1f}G"
+    elif size >= 1024**2:
+        return f"{size / 1024**2:.1f}M"
+    elif size >= 1024:
+        return f"{size / 1024:.1f}K"
+    else:
+        return f"{size}B"
+
+
+def list_detailed_files_and_directories(items,human_readable=False,lf_revrse=False,lf_t=False,filter_option=False,lsize=False):
     """
     Print detailed information about files and directories.
 
@@ -74,14 +97,16 @@ def list_detailed_files_and_directories(items,lf_revrse=False,lf_t=False,filter_
         if not item['name'].startswith('.'):
             try:
                 permissions = item['permissions']
-                size = item['size']
+                #size = item['size']
+                size = human_readable_size(item['size']) if human_readable else item['size']
                 mod_time = format_modification_time(item['time_modified'])
                 name = item['name']
                 print(f"{permissions} {size} {mod_time} {name}")
             except KeyError as e:
                 print(f"Error: Missing key {e} in item.")
                 sys.exit(1)
-            
+      
+        
 def list_simple_files_and_directories(res):
     """
     Print the names of files and directories.
@@ -100,15 +125,15 @@ def list_simple_files_and_directories(res):
         print (e)
 
     
-def Task(directory, show_all=False, lf=False, lf_revrse=False, lf_t=False,filter_option=False, lsize=False):
+def Task(directory, show_all=False, lf=False, human_readable=False, lf_revrse=False, lf_t=False,filter_option=False, lsize=False):
     # Extract top-level contents    
     res = list_top_level(directory)  
 
-    try:    
+    try:      
         if long_format == False and (lf_revrse==True or lf_t==True or filter_option==True):
             print("Recheck the arguments")
         elif long_format:
-            list_detailed_files_and_directories(res,lf_revrse,lf_t,filter_option,lsize)
+            list_detailed_files_and_directories(res,human_readable,lf_revrse,lf_t,filter_option,lsize)
         else:
             list_simple_files_and_directories(res)
         
@@ -121,16 +146,15 @@ def Task(directory, show_all=False, lf=False, lf_revrse=False, lf_t=False,filter
 
 if __name__ == '__main__':
     # Get the directory path from command-line arguments or default to current directory
-    #directory = os.path.dirname(os.path.abspath(__file__))
     directory = "file_structure.json"
     
     parser = argparse.ArgumentParser(description="List top-level files and directories.")
     parser.add_argument('-A', action='store_true', help="Show all files, including the '.<name>' ones.")
     parser.add_argument('-l', action='store_true', help="Show detailed information.")
+    parser.add_argument('-hr', action='store_true', help="Show sizes in human-readable format.")
     parser.add_argument('-r', action='store_true', help="Reverse the detailed information.")
     parser.add_argument('-t', action='store_true', help="Sort the detailed information based on timestamp.")
     parser.add_argument('--filter', choices=['file', 'dir'], help="Filter the output to only show files or directories.")
-    #parser.add_argument('--filter', action='store_true', help="Filter the output to only show files or directories.")
     
     # Parse arguments
     try:
@@ -140,8 +164,17 @@ if __name__ == '__main__':
     # Determine if any arguments are passed
     show_all = args.A
     long_format = args.l
+    human_readable = args.hr
     lf_revrse = args.r
     lf_t = args.t
     filter_option=args.filter
     
-    Task(directory,show_all=args.A,lf=args.l,lf_revrse=args.r,lf_t=args.t,filter_option=args.filter)
+    #Calling the function
+    Task(directory,
+         show_all=args.A,
+         lf=args.l,
+         human_readable=args.hr,
+         lf_revrse=args.r,
+         lf_t=args.t,
+         filter_option=args.filter)
+    
