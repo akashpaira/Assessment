@@ -12,6 +12,8 @@ import sys
 import argparse
 from datetime import datetime
 
+import pdb
+
 def list_top_level(directory):
     # Define the path to the JSON file
     #json_file_path = os.path.join(directory, 'file_structure.json')
@@ -41,14 +43,40 @@ def format_modification_time(timestamp):
     dt = datetime.fromtimestamp(timestamp)
     return dt.strftime('%b %d %H:%M')
 
-def list_detailed_files_and_directories(items,lf_revrse=False):
+def filter_items(items, filter_option):
+    """
+    Filter items based on the given filter option.
+
+    :param items: List of dictionaries containing file and directory information.
+    :param filter_option: Filter option to show only files or directories.
+    :return: Filtered list of items.
+    """
+    filtered_items = []
+    for item in items:
+        if filter_option == 'dir' and 'contents' in item:
+            filtered_items.append(item)
+        elif filter_option == 'file' and 'contents' not in item:
+            filtered_items.append(item)
+    return filtered_items
+
+def list_detailed_files_and_directories(items,lf_revrse=False,lf_t=False,filter_option=False,lsize=False):
     """
     Print detailed information about files and directories.
 
     :param items: List of dictionaries containing file and directory information.
     """
+    #pdb.set_trace()
+    if lf_t:
+        items.sort(key=lambda x: x['time_modified'])
+        
     if lf_revrse:
         items = items[::-1]
+        
+    if filter_option:
+        if filter_option in("dir","file"):
+            items = filter_items(items,filter_option)
+        else:
+            print("Invalid")
         
     for item in items:
         if not item['name'].startswith('.'):
@@ -80,14 +108,15 @@ def list_simple_files_and_directories(res):
         print (e)
 
     
-def Task(directory, show_all=False, lf=False, lf_revrse=False):
+def Task(directory, show_all=False, lf=False, lf_revrse=False, lf_t=False,filter_option=False, lsize=False):
     # Extract top-level contents    
     res = list_top_level(directory)  
-    try:       
-        if long_format==False and lf_revrse==True:
+
+    try:      
+        if long_format == False and (lf_revrse==True or lf_t==True or filter_option==True):
             print("Recheck the arguments")
         elif long_format:
-            list_detailed_files_and_directories(res,lf_revrse)
+            list_detailed_files_and_directories(res,lf_revrse,lf_t,filter_option,lsize)
         else:
             list_simple_files_and_directories(res)
         
@@ -107,12 +136,20 @@ if __name__ == '__main__':
     parser.add_argument('-A', action='store_true', help="Show all files, including the '.<name>' ones.")
     parser.add_argument('-l', action='store_true', help="Show detailed information.")
     parser.add_argument('-r', action='store_true', help="Reverse the detailed information.")
+    parser.add_argument('-t', action='store_true', help="Sort the detailed information based on timestamp.")
+    parser.add_argument('--filter', choices=['file', 'dir'], help="Filter the output to only show files or directories.")
+    #parser.add_argument('--filter', action='store_true', help="Filter the output to only show files or directories.")
     
     # Parse arguments
-    args = parser.parse_args()
+    try:
+        args = parser.parse_args()
+    except Exception as e:
+        print("Invalid")
     # Determine if any arguments are passed
     show_all = args.A
     long_format = args.l
     lf_revrse = args.r
+    lf_t = args.t
+    filter_option=args.filter
     
-    Task(directory,show_all=args.A,lf=args.l,lf_revrse=args.r)
+    Task(directory,show_all=args.A,lf=args.l,lf_revrse=args.r,lf_t=args.t,filter_option=args.filter)
