@@ -73,6 +73,25 @@ def human_readable_size(size):
     else:
         return f"{size}B"
 
+def print_items(items):
+    """
+    Print the details of files and directories.
+
+    :param item: json content.
+    """
+    #pdb.set_trace()
+    for item in items:
+        if not item['name'].startswith('.'):
+            try:
+                permissions = item['permissions']
+                #size = item['size']
+                size = human_readable_size(item['size']) if human_readable else item['size']
+                mod_time = format_modification_time(item['time_modified'])
+                name = item['name']
+                print(f"{permissions} {size} {mod_time} {name}")
+            except KeyError as e:
+                print(f"Error: Missing key {e} in item.")
+                sys.exit(1)
 
 def list_detailed_files_and_directories(items,human_readable=False,lf_revrse=False,lf_t=False,filter_option=False,lsize=False):
     """
@@ -93,18 +112,7 @@ def list_detailed_files_and_directories(items,human_readable=False,lf_revrse=Fal
         else:
             print("Invalid")
         
-    for item in items:
-        if not item['name'].startswith('.'):
-            try:
-                permissions = item['permissions']
-                #size = item['size']
-                size = human_readable_size(item['size']) if human_readable else item['size']
-                mod_time = format_modification_time(item['time_modified'])
-                name = item['name']
-                print(f"{permissions} {size} {mod_time} {name}")
-            except KeyError as e:
-                print(f"Error: Missing key {e} in item.")
-                sys.exit(1)
+    print_items(items)
       
         
 def list_simple_files_and_directories(res):
@@ -124,10 +132,38 @@ def list_simple_files_and_directories(res):
     except Exception as e:
         print (e)
 
+
+def find_item(res, path_parts):
+    """
+    Navigate through JSON data to find a specific item.
+    :param data: JSON data to search through.
+    :param path_parts: List of path components.
+    :return: The item if found, otherwise None.
+    """
+    current = res
+    #pdb.set_trace()
+    x= True
+    for item in current:
+        if item['name']==path_parts[0]:
+            #pdb.set_trace()
+            if len(path_parts)==1:
+                print_items(item['contents'])
+            else:
+                for i in item['contents']:
+                    if i['name']==path_parts[1]:
+                        print_items([i])
+            x= False
+
+    if x:
+        print(f"error: cannot access '{args.path}': No such file or directory")
+    
+
+
     
 def Task(directory, show_all=False, lf=False, human_readable=False, lf_revrse=False, lf_t=False,filter_option=False, lsize=False):
     # Extract top-level contents    
     res = list_top_level(directory)  
+    #pdb.set_trace()
 
     try:      
         if long_format == False and (lf_revrse==True or lf_t==True or filter_option==True):
@@ -143,6 +179,8 @@ def Task(directory, show_all=False, lf=False, human_readable=False, lf_revrse=Fa
         print (e)
         
 
+        
+
 
 if __name__ == '__main__':
     # Get the directory path from command-line arguments or default to current directory
@@ -154,6 +192,7 @@ if __name__ == '__main__':
     parser.add_argument('-hr', action='store_true', help="Show sizes in human-readable format.")
     parser.add_argument('-r', action='store_true', help="Reverse the detailed information.")
     parser.add_argument('-t', action='store_true', help="Sort the detailed information based on timestamp.")
+    parser.add_argument('path', nargs='?', default='', help="Path to navigate within the JSON structure.")
     parser.add_argument('--filter', choices=['file', 'dir'], help="Filter the output to only show files or directories.")
     
     # Parse arguments
@@ -168,13 +207,22 @@ if __name__ == '__main__':
     lf_revrse = args.r
     lf_t = args.t
     filter_option=args.filter
+    # Handle the path argument
+    path_parts = args.path.strip().split('/') if args.path.strip() else []
+    #if the path structure mentioned with additional "./"
+    if path_parts and path_parts[0]=='.':
+        path_parts.remove(path_parts[0])
     
-    #Calling the function
-    Task(directory,
-         show_all=args.A,
-         lf=args.l,
-         human_readable=args.hr,
-         lf_revrse=args.r,
-         lf_t=args.t,
-         filter_option=args.filter)
-    
+    #pdb.set_trace()
+    if long_format and path_parts:
+        res = list_top_level(directory)
+        find_item(res, path_parts)
+    else:
+        #Calling the function
+        Task(directory,
+             show_all=args.A,
+             lf=args.l,
+             human_readable=args.hr,
+             lf_revrse=args.r,
+             lf_t=args.t,
+             filter_option=args.filter)
