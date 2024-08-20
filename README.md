@@ -4,10 +4,12 @@ Depending on the arguments provided, PyLS can perform various tasks:
 1. List Top-Level Files and Directories: **`python -m pyls`**
 2. Show All Files (including hidden files): **`python -m pyls -A`**
 3. Detailed Information: **`python -m pyls -l`**
-4. Human-Readable Sizes (along with detailed information): **`python -m pyls -l -h`**
-5. Sort by Time (oldest files first): **`python -m pyls -t`**
-6. Filter by Type by dir: **`python -m pyls --filter=dir`**
-7. Filter by Type by file: **`python -m pyls --filter=file`**
+4. Navigate the sub-directory/file structure within the json **`python -m pyls -l <directory name/file name>`**
+5. Human-Readable Sizes (along with detailed information): **`python -m pyls -l -h`**
+6. Sort by Time (oldest files first): **`python -m pyls -t`**
+7. Filter by Type by dir: **`python -m pyls --filter=dir`**
+8. Filter by Type by file: **`python -m pyls --filter=file`**
+9. For help **`python -m pyls -h`**
 
 # Features
 Basic Listing: Lists top-level files and directories.
