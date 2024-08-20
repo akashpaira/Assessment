@@ -147,13 +147,13 @@ def find_item(res, path_parts):
         if item['name']==path_parts[0]:
             #pdb.set_trace()
             if len(path_parts)==1:
+                x = False
                 print_items(item['contents'])
             else:
                 for i in item['contents']:
                     if i['name']==path_parts[1]:
+                        x = False
                         print_items([i])
-            x= False
-
     if x:
         print(f"error: cannot access '{args.path}': No such file or directory")
     
@@ -165,8 +165,8 @@ def Task(directory, show_all=False, lf=False, human_readable=False, lf_revrse=Fa
     res = list_top_level(directory)  
     #pdb.set_trace()
 
-    try:      
-        if long_format == False and (lf_revrse==True or lf_t==True or filter_option==True):
+    try: 
+        if long_format == False and (lf_revrse or lf_t or filter_option):
             print("Recheck the arguments")
         elif long_format:
             list_detailed_files_and_directories(res,human_readable,lf_revrse,lf_t,filter_option,lsize)
