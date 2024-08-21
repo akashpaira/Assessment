@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 """
 Created on Tue Aug 13 12:14:37 2024
 
@@ -154,6 +155,7 @@ def find_item(res, path_parts):
                     if i['name']==path_parts[1]:
                         x = False
                         print_items([i])
+
     if x:
         print(f"error: cannot access '{args.path}': No such file or directory")
     
@@ -217,6 +219,8 @@ if __name__ == '__main__':
     if long_format and path_parts:
         res = list_top_level(directory)
         find_item(res, path_parts)
+    elif not long_format and path_parts:
+        print(f"error: cannot access '{path_parts}': No such file or directory")
     else:
         #Calling the function
         Task(directory,
